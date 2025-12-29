@@ -15,7 +15,7 @@ except ImportError as e:
 
 # ==========================================
 # 👇 TOKEN ထည့်ရန်
-TOKEN = '8291993385:AAGlLkaG3V14Db9cwnYQpLeIJuJ5dxxIOZg'
+TOKEN = '8406430794:AAE2yHzMNiolhVjFclHkBgnL6Bnvv0bgTAA'
 # ==========================================
 
 # ==========================================
@@ -82,7 +82,6 @@ def clear_hits(message):
 # HELPER FUNCTION: CLEAN STATUS
 # ===========================
 def get_clean_status(raw_response):
-    """Raw JSON ကို ဖတ်ပြီး သပ်ရပ်တဲ့ Status စာသားပြန်ထုတ်ပေးမယ့် Function"""
     if "Payment Successful" in raw_response:
         return 'Charged ✅'
     elif "funds" in raw_response:
@@ -95,7 +94,7 @@ def get_clean_status(raw_response):
         return 'Declined ❌'
 
 # ===========================
-# MASS CHECKER
+# MASS CHECKER (LIVE STATUS VIEW)
 # ===========================
 @bot.message_handler(commands=['mass'])
 def mass_check(message):
@@ -113,33 +112,56 @@ def process_mass(message):
         cards = [line.strip() for line in input_text.split('\n') if line.strip()]
         if len(cards) > 10: cards = cards[:10]
 
-        msg = bot.reply_to(message, f"🔄 <b>Checking {len(cards)} cards...</b>", parse_mode="HTML")
+        # ၁. အရင်ဆုံး List အလွတ်တစ်ခု တည်ဆောက်မယ် (Waiting Status နဲ့)
+        status_list = []
+        for cc in cards:
+            status_list.append(f"<code>{cc}</code> ➜ ⏳") # Initial Status
+
+        # ၂. Message စပို့မယ်
+        status_message = "\n".join(status_list)
+        msg = bot.reply_to(message, f"🔄 <b>Mass Check Started...</b>\n\n{status_message}", parse_mode="HTML")
         
         hits = 0
         username = message.from_user.username or "NoUsername"
 
-        for cc in cards:
+        for index, cc in enumerate(cards):
             try:
+                # ၃. စစ်နေပြီ (Checking) လို့ ပြောင်းပြီး Edit မယ်
+                status_list[index] = f"<code>{cc}</code> ➜ 🔄"
+                current_text = "\n".join(status_list)
+                try:
+                    bot.edit_message_text(chat_id=message.chat.id, message_id=msg.message_id, text=f"🔄 <b>Processing...</b>\n\n{current_text}", parse_mode="HTML")
+                except: pass
+
+                # ၄. ကဒ်စစ်မယ်
                 raw_response = str(Tele(cc))
-                
-                # 🔥 Clean the status BEFORE sending to hit_sender
                 clean_status = get_clean_status(raw_response)
 
+                # ၅. ရလဒ်ထွက်လာရင် List မှာ အစားထိုးမယ်
+                status_list[index] = f"<code>{cc}</code> ➜ {clean_status}"
+                
                 # Save Logic
                 if "Charged" in clean_status or "Funds" in clean_status:
                     hits += 1
                     with open("gfemin.txt", "a") as f:
                         f.write(f"{cc} | {clean_status}\n")
-                    
                     try:
-                        # Send pretty message
                         send_response = send(cc, clean_status, username, 0)
                         bot.reply_to(message, send_response, parse_mode="HTML")
                     except: pass
+                
+                # ၆. Result ကို Edit လုပ်ပြီး ပြမယ်
+                try:
+                    current_text = "\n".join(status_list)
+                    bot.edit_message_text(chat_id=message.chat.id, message_id=msg.message_id, text=f"🔄 <b>Processing...</b>\n\n{current_text}", parse_mode="HTML")
+                except: pass
+
             except Exception as e:
                 print(f"Check Error: {e}")
 
-        bot.edit_message_text(chat_id=message.chat.id, message_id=msg.message_id, text=f"✅ <b>Mass Check Done!</b>\nHits: {hits}", parse_mode="HTML")
+        # Final Update
+        final_text = "\n".join(status_list)
+        bot.edit_message_text(chat_id=message.chat.id, message_id=msg.message_id, text=f"✅ <b>Mass Check Completed!</b>\n\nHits: {hits}\n\n{final_text}", parse_mode="HTML")
 
     except Exception as e:
         print(f"Mass Error: {e}")
@@ -164,11 +186,8 @@ def check_card(message):
         
         print(f"Checked: {cc} -> {raw_response}")
 
-        # 🔥 CLEAN STATUS HERE 🔥
-        # JSON စာကြောင်းကြီးကို အတိုကောက် စာသားပြောင်းမယ်
         clean_status = get_clean_status(raw_response)
 
-        # Save Logic
         if "Charged" in clean_status:
             with open("gfemin.txt", "a") as f:
                 f.write(f"{cc} | Charged ✅\n")
@@ -176,14 +195,11 @@ def check_card(message):
             with open("gfemin.txt", "a") as f:
                 f.write(f"{cc} | Low Funds 🍃\n")
 
-        # Send Result using hit_sender
         username = message.from_user.username or "NoUsername"
         try:
-            # အခု send function ဆီကို "Declined ❌" ဆိုတဲ့ စာသန့်သန့်လေးပဲ ရောက်သွားပါပြီ
             send_response = send(cc, clean_status, username, time_taken)
             bot.edit_message_text(chat_id=message.chat.id, message_id=msg.message_id, text=send_response, parse_mode="HTML")
         except Exception as e:
-            # တကယ်လို့ hit_sender က Error တက်ရင်တောင် အောက်က Backup စာနဲ့ ပြပေးမယ်
             bot.edit_message_text(chat_id=message.chat.id, message_id=msg.message_id, text=f"<b>Card:</b> <code>{cc}</code>\n<b>Status:</b> {clean_status}\n<b>Time:</b> {time_taken}s")
 
     except Exception as e:
