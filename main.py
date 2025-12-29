@@ -79,19 +79,19 @@ def clear_hits(message):
         bot.reply_to(message, "File already empty.")
 
 # ===========================
-# 🔥 1. MASS CHECK STATUS (EMOJI ONLY) 🔥
+# 🔥 1. MASS CHECK STATUS (CUSTOM SHORT TEXT) 🔥
 # ===========================
 def get_mass_status(raw_response):
     if "Payment Successful" in raw_response:
-        return '✅'
+        return 'Approved ✅'
     elif "funds" in raw_response:
-        return '♻️'
+        return 'Insu ♻️'
     elif "security code" in raw_response:
-        return '✅' # CCN is technically Live
+        return 'Approved ✅' # CCN
     elif "action" in raw_response or "3D" in raw_response:
-        return '⚠️' # 3DS
+        return '3Ds⚠️' 
     else:
-        return '⛔' # Declined
+        return 'Decline⛔' # Declined
 
 # ===========================
 # 🔥 2. SINGLE CHECK STATUS (FULL TEXT) 🔥
@@ -148,7 +148,7 @@ def process_mass(message):
                 # ကဒ်စစ်မယ်
                 raw_response = str(Tele(cc))
                 
-                # 🔥 MASS အတွက် EMOJI Status ကိုခေါ်သုံးမယ်
+                # 🔥 MASS Status ကိုခေါ်သုံးမယ် (Approved ✅, Insu ♻️, etc.)
                 clean_status = get_mass_status(raw_response)
 
                 status_list[index] = f"<code>{cc}</code>  {clean_status}"
@@ -159,9 +159,6 @@ def process_mass(message):
                     with open("gfemin.txt", "a") as f:
                         f.write(f"{cc} | {clean_status}\n")
                     try:
-                        # Mass Hit မိရင်လည်း Send Sender နဲ့ ပို့ချင်ရင် ဒီမှာဖွင့်ပါ
-                        # send_response = send(cc, "Hit Found in Mass", username, 0)
-                        # bot.reply_to(message, send_response, parse_mode="HTML")
                         pass
                     except: pass
                 
