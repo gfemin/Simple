@@ -79,20 +79,37 @@ def clear_hits(message):
         bot.reply_to(message, "File already empty.")
 
 # ===========================
-# HELPER FUNCTION: CLEAN STATUS (STATUS ပြင်ဆင်ခြင်း)
+# 🔥 1. MASS CHECK STATUS (EMOJI ONLY) 🔥
 # ===========================
-def get_clean_status(raw_response):
+def get_mass_status(raw_response):
     if "Payment Successful" in raw_response:
-        return 'Transactions Successful 🥵'  # မင်းလိုချင်တဲ့အတိုင်း ပြင်ထားတယ်
+        return '✅'
+    elif "funds" in raw_response:
+        return '♻️'
+    elif "security code" in raw_response:
+        return '✅' # CCN is technically Live
+    elif "action" in raw_response or "3D" in raw_response:
+        return '⚠️' # 3DS
+    else:
+        return '⛔' # Declined
+
+# ===========================
+# 🔥 2. SINGLE CHECK STATUS (FULL TEXT) 🔥
+# ===========================
+def get_single_status(raw_response):
+    if "Payment Successful" in raw_response:
+        return 'Transactions Successful 🥵'
     elif "funds" in raw_response:
         return 'Insufficient Funds 🍃'
     elif "security code" in raw_response:
         return 'CCN Live ✅'
+    elif "action" in raw_response or "3D" in raw_response:
+        return '3DS Required ⚠️'
     else:
-        return '⛔'  # Decline ဖြစ်ရင် ⛔ ပဲပြမယ်
+        return 'Declined ❌' 
 
 # ===========================
-# MASS CHECKER (View: No Arrow, Custom Status)
+# MASS CHECKER (/mass)
 # ===========================
 @bot.message_handler(commands=['mass'])
 def mass_check(message):
@@ -110,10 +127,9 @@ def process_mass(message):
         cards = [line.strip() for line in input_text.split('\n') if line.strip()]
         if len(cards) > 10: cards = cards[:10]
 
-        # ၁. ARROW (➜) မပါဘဲ Space ခြားထားတယ်
         status_list = []
         for cc in cards:
-            status_list.append(f"<code>{cc}</code>  ⏳") # Initial Status
+            status_list.append(f"<code>{cc}</code>  ⏳") 
 
         status_message = "\n".join(status_list)
         msg = bot.reply_to(message, f"🔄 <b>Mass Check Started...</b>\n\n{status_message}", parse_mode="HTML")
@@ -123,31 +139,32 @@ def process_mass(message):
 
         for index, cc in enumerate(cards):
             try:
-                # ၃. စစ်နေပြီ (Checking)
                 status_list[index] = f"<code>{cc}</code>  🔄"
                 current_text = "\n".join(status_list)
                 try:
                     bot.edit_message_text(chat_id=message.chat.id, message_id=msg.message_id, text=f"🔄 <b>Processing...</b>\n\n{current_text}", parse_mode="HTML")
                 except: pass
 
-                # ၄. ကဒ်စစ်မယ်
+                # ကဒ်စစ်မယ်
                 raw_response = str(Tele(cc))
-                clean_status = get_clean_status(raw_response)
+                
+                # 🔥 MASS အတွက် EMOJI Status ကိုခေါ်သုံးမယ်
+                clean_status = get_mass_status(raw_response)
 
-                # ၅. ရလဒ်ထွက်လာရင် List မှာ အစားထိုးမယ်
                 status_list[index] = f"<code>{cc}</code>  {clean_status}"
                 
-                # Save Logic (Successful သို့မဟုတ် Funds ဖြစ်မှ Save မယ်)
-                if "Successful" in clean_status or "Funds" in clean_status:
+                # Save Logic (✅, ♻️, ⚠️ ပါရင် Save မယ်)
+                if "✅" in clean_status or "♻️" in clean_status or "⚠️" in clean_status:
                     hits += 1
                     with open("gfemin.txt", "a") as f:
                         f.write(f"{cc} | {clean_status}\n")
                     try:
-                        send_response = send(cc, clean_status, username, 0)
-                        bot.reply_to(message, send_response, parse_mode="HTML")
+                        # Mass Hit မိရင်လည်း Send Sender နဲ့ ပို့ချင်ရင် ဒီမှာဖွင့်ပါ
+                        # send_response = send(cc, "Hit Found in Mass", username, 0)
+                        # bot.reply_to(message, send_response, parse_mode="HTML")
+                        pass
                     except: pass
                 
-                # ၆. Result ကို Edit လုပ်ပြီး ပြမယ်
                 try:
                     current_text = "\n".join(status_list)
                     bot.edit_message_text(chat_id=message.chat.id, message_id=msg.message_id, text=f"🔄 <b>Processing...</b>\n\n{current_text}", parse_mode="HTML")
@@ -156,7 +173,6 @@ def process_mass(message):
             except Exception as e:
                 print(f"Check Error: {e}")
 
-        # Final Update
         final_text = "\n".join(status_list)
         bot.edit_message_text(chat_id=message.chat.id, message_id=msg.message_id, text=f"✅ <b>Mass Check Completed!</b>\n\nHits: {hits}\n\n{final_text}", parse_mode="HTML")
 
@@ -164,7 +180,7 @@ def process_mass(message):
         print(f"Mass Error: {e}")
 
 # ===========================
-# SINGLE CHECKER
+# SINGLE CHECKER (/mt)
 # ===========================
 @bot.message_handler(commands=['mt'])
 def check_card(message):
@@ -183,14 +199,19 @@ def check_card(message):
         
         print(f"Checked: {cc} -> {raw_response}")
 
-        clean_status = get_clean_status(raw_response)
+        # 🔥 SINGLE အတွက် Full Text Status ကိုခေါ်သုံးမယ်
+        clean_status = get_single_status(raw_response)
 
+        # Save Logic
         if "Successful" in clean_status:
             with open("gfemin.txt", "a") as f:
                 f.write(f"{cc} | Transactions Successful 🥵\n")
         elif "Funds" in clean_status:
             with open("gfemin.txt", "a") as f:
                 f.write(f"{cc} | Insufficient Funds 🍃\n")
+        elif "3DS" in clean_status:
+            with open("gfemin.txt", "a") as f:
+                f.write(f"{cc} | 3DS Required ⚠️\n")
 
         username = message.from_user.username or "NoUsername"
         try:
