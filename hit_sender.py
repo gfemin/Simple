@@ -22,7 +22,7 @@ def send(cc, last, username, time_taken):
         bank = emj = do = dicr = typ = 'Unknown'
 
     msg1 = f"""
-𝐆𝐚𝐭𝐞𝐰𝐚𝐲 ➜ 𝚆𝚒𝚕𝚕 𝙱𝚎 𝙲𝚑𝚊𝚛𝚐𝚎 {fixed_amount}$ 💰
+𝐆𝐚𝐭𝐞𝐰𝐚𝐲 ➜ 𝚂𝚝𝚛𝚒𝚙𝚎 {fixed_amount}$ 💰
 
 𝐑𝐞𝐬𝐩𝐨𝐧𝐬𝐞 ➜ {last}
 𝐂𝐂 ➜ <code>{cc}</code>
