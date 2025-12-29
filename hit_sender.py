@@ -4,7 +4,7 @@ def send(cc, last, username, time_taken):
     ii = cc[:6]
 
     # Fixed amount (no random)
-    fixed_amount = "1.00"
+    fixed_amount = "𝟭"
 
     try:
         response = requests.get(f'https://bins.antipublic.cc/bins/{ii}')
@@ -22,7 +22,7 @@ def send(cc, last, username, time_taken):
         bank = emj = do = dicr = typ = 'Unknown'
 
     msg1 = f"""
-𝐆𝐚𝐭𝐞𝐰𝐚𝐲 ➜ 𝚂𝚝𝚛𝚒𝚙𝚎 {fixed_amount}$ 💰
+𝐆𝐚𝐭𝐞𝐰𝐚𝐲 ➜ 𝐒𝐭𝐫𝐢𝐩𝐞 𝐠𝐚𝐭𝐞 {fixed_amount}$ 💰
 
 𝐑𝐞𝐬𝐩𝐨𝐧𝐬𝐞 ➜ {last}
 𝐂𝐂 ➜ <code>{cc}</code>
