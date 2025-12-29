@@ -15,7 +15,7 @@ except ImportError as e:
 
 # ==========================================
 # 👇 TOKEN ထည့်ရန်
-TOKEN = '8406430794:AAE2yHzMNiolhVjFclHkBgnL6Bnvv0bgTAA'
+TOKEN = '8291993385:AAGlLkaG3V14Db9cwnYQpLeIJuJ5dxxIOZg'
 # ==========================================
 
 # ==========================================
