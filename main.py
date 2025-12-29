@@ -6,11 +6,19 @@ from hit_sender import send
 admin_name = "@Rusisvirus"
 
 # ==========================================
-# 👇 ဒီနေရာမှာ ခွင့်ပြုမယ့် GROUP ID တွေကို ထည့်ပါ
-# Group ID တွေက များသောအားဖြင့် -100 နဲ့ စပါတယ်
+# 👇 ၁. ခွင့်ပြုမယ့် GROUP ID များ
 ALLOWED_GROUPS = [
-    '-1003606197582',   # Group 1 ID
-    '-1003606197582'    # Group 2 ID
+    '-1003606197582', 
+    '-1003606197582'
+]
+
+# 👇 ၂. ခွင့်ပြုမယ့် USER ID များ (၄ ယောက်စာ နေရာလုပ်ပေးထားတယ်)
+ALLOWED_USERS = [
+    '1915369904',      # 1. Admin/Owner (မင်း ID)
+    '6815134572',  # 2. သူငယ်ချင်း (၁) ID ထည့်ပါ
+    'USER_ID_3_HERE',  # 3. သူငယ်ချင်း (၂) ID ထည့်ပါ
+    'USER_ID_4_HERE',  # 4. သူငယ်ချင်း (၃) ID ထည့်ပါ
+    'USER_ID_5_HERE'   # 5. သူငယ်ချင်း (၄) ID ထည့်ပါ
 ]
 # ==========================================
 
@@ -24,34 +32,36 @@ except FileNotFoundError:
 
 bot = TeleBot(token, parse_mode="HTML")
 
-# ⛔ Private Chat တွေမှာ သုံးမရအောင် တားမယ့် Function
+# ⛔ Permission စစ်ဆေးမယ့် Function
 def is_allowed(message):
-    # 1. Private Chat ဖြစ်နေရင် ငြင်းမယ်
-    if message.chat.type == 'private':
-        bot.reply_to(message, "❌ <b>This bot only works in authorized groups!</b>", parse_mode="HTML")
-        return False
-    
-    # 2. Group ID က list ထဲမှာ မပါရင် ငြင်းမယ်
-    if str(message.chat.id) not in ALLOWED_GROUPS:
-        bot.reply_to(message, "❌ <b>This group is not authorized.</b>", parse_mode="HTML")
-        return False
-        
+    chat_type = message.chat.type
+    chat_id = str(message.chat.id)
+    user_id = str(message.from_user.id)
+
+    # ၁. Private Chat ဖြစ်နေရင် -> User ID ကို စစ်မယ်
+    if chat_type == 'private':
+        if user_id not in ALLOWED_USERS:
+            bot.reply_to(message, "❌ <b>You are not authorized to use this bot in private!</b>", parse_mode="HTML")
+            return False
+            
+    # ၂. Group Chat ဖြစ်နေရင် -> Group ID ကို စစ်မယ်
+    elif chat_type in ['group', 'supergroup']:
+        if chat_id not in ALLOWED_GROUPS:
+            bot.reply_to(message, "❌ <b>This group is not authorized.</b>", parse_mode="HTML")
+            return False
+
     return True
 
 @bot.message_handler(commands=["start"])
 def start(message):
-    # Permission စစ်မယ်
     if not is_allowed(message): return
-    
     bot.reply_to(message,"/mt n|mm|yy|cvc (Visa/Mastercard)")
 
 @bot.message_handler(commands=['mt'])
 def check_card(message):
-    # Permission စစ်မယ်
     if not is_allowed(message): return
 
     try:
-        # User input မှားရင် error မတက်အောင် try catch ခံထားတာ
         try:
             cc = message.text.split('/mt', 1)[1].strip()
         except IndexError:
@@ -79,7 +89,6 @@ def check_card(message):
             last = 'API Error'
         print(last)
 
-        # Status Mapping
         if "Payment Successful" in last:
             last = '𝐓𝐫𝐚𝐧𝐬𝐚𝐜𝐭𝐢𝐨𝐧 𝐒𝐮𝐜𝐜𝐞𝐬𝐬𝐟𝐮𝐥 🔥'
         elif "Your card does not support this type of purchase" in last:
@@ -93,7 +102,6 @@ def check_card(message):
 
         time_taken = round(time.time() - start_time, 2)
 
-        # hit_sender ကနေ message format ယူမယ်
         try:
             send_response = send(cc, last, username, time_taken)
         except Exception as e:
