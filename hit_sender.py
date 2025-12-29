@@ -4,7 +4,7 @@ def send(cc, last, username, time_taken):
     ii = cc[:6]
 
     # Fixed amount (no random)
-    fixed_amount = "𝟭"
+    fixed_amount = "1"
 
     try:
         response = requests.get(f'https://bins.antipublic.cc/bins/{ii}')
