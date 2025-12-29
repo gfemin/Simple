@@ -79,22 +79,20 @@ def clear_hits(message):
         bot.reply_to(message, "File already empty.")
 
 # ===========================
-# HELPER FUNCTION: CLEAN STATUS
+# HELPER FUNCTION: CLEAN STATUS (STATUS ပြင်ဆင်ခြင်း)
 # ===========================
 def get_clean_status(raw_response):
     if "Payment Successful" in raw_response:
-        return 'Charged ✅'
+        return 'Transactions Successful 🥵'  # မင်းလိုချင်တဲ့အတိုင်း ပြင်ထားတယ်
     elif "funds" in raw_response:
         return 'Insufficient Funds 🍃'
     elif "security code" in raw_response:
         return 'CCN Live ✅'
-    elif "Your card was declined" in raw_response or "Stripe Error" in raw_response or "declined" in raw_response:
-        return 'Declined ❌'
     else:
-        return 'Declined ❌'
+        return '⛔'  # Decline ဖြစ်ရင် ⛔ ပဲပြမယ်
 
 # ===========================
-# MASS CHECKER (LIVE STATUS VIEW)
+# MASS CHECKER (View: No Arrow, Custom Status)
 # ===========================
 @bot.message_handler(commands=['mass'])
 def mass_check(message):
@@ -112,12 +110,11 @@ def process_mass(message):
         cards = [line.strip() for line in input_text.split('\n') if line.strip()]
         if len(cards) > 10: cards = cards[:10]
 
-        # ၁. အရင်ဆုံး List အလွတ်တစ်ခု တည်ဆောက်မယ် (Waiting Status နဲ့)
+        # ၁. ARROW (➜) မပါဘဲ Space ခြားထားတယ်
         status_list = []
         for cc in cards:
-            status_list.append(f"<code>{cc}</code> ➜ ⏳") # Initial Status
+            status_list.append(f"<code>{cc}</code>  ⏳") # Initial Status
 
-        # ၂. Message စပို့မယ်
         status_message = "\n".join(status_list)
         msg = bot.reply_to(message, f"🔄 <b>Mass Check Started...</b>\n\n{status_message}", parse_mode="HTML")
         
@@ -126,8 +123,8 @@ def process_mass(message):
 
         for index, cc in enumerate(cards):
             try:
-                # ၃. စစ်နေပြီ (Checking) လို့ ပြောင်းပြီး Edit မယ်
-                status_list[index] = f"<code>{cc}</code> ➜ 🔄"
+                # ၃. စစ်နေပြီ (Checking)
+                status_list[index] = f"<code>{cc}</code>  🔄"
                 current_text = "\n".join(status_list)
                 try:
                     bot.edit_message_text(chat_id=message.chat.id, message_id=msg.message_id, text=f"🔄 <b>Processing...</b>\n\n{current_text}", parse_mode="HTML")
@@ -138,10 +135,10 @@ def process_mass(message):
                 clean_status = get_clean_status(raw_response)
 
                 # ၅. ရလဒ်ထွက်လာရင် List မှာ အစားထိုးမယ်
-                status_list[index] = f"<code>{cc}</code> ➜ {clean_status}"
+                status_list[index] = f"<code>{cc}</code>  {clean_status}"
                 
-                # Save Logic
-                if "Charged" in clean_status or "Funds" in clean_status:
+                # Save Logic (Successful သို့မဟုတ် Funds ဖြစ်မှ Save မယ်)
+                if "Successful" in clean_status or "Funds" in clean_status:
                     hits += 1
                     with open("gfemin.txt", "a") as f:
                         f.write(f"{cc} | {clean_status}\n")
@@ -188,12 +185,12 @@ def check_card(message):
 
         clean_status = get_clean_status(raw_response)
 
-        if "Charged" in clean_status:
+        if "Successful" in clean_status:
             with open("gfemin.txt", "a") as f:
-                f.write(f"{cc} | Charged ✅\n")
+                f.write(f"{cc} | Transactions Successful 🥵\n")
         elif "Funds" in clean_status:
             with open("gfemin.txt", "a") as f:
-                f.write(f"{cc} | Low Funds 🍃\n")
+                f.write(f"{cc} | Insufficient Funds 🍃\n")
 
         username = message.from_user.username or "NoUsername"
         try:
