@@ -21,18 +21,18 @@ def send(cc, last, username, time_taken):
     except Exception:
         bank = emj = do = dicr = typ = 'Unknown'
 
-    msg1 = f"""
-𝐆𝐚𝐭𝐞𝐰𝐚𝐲 ➜ 𝐒𝐭𝐫𝐢𝐩𝐞 𝐠𝐚𝐭𝐞 {fixed_amount}$ 💰
-
-𝐑𝐞𝐬𝐩𝐨𝐧𝐬𝐞 ➜ {last}
-𝐂𝐂 ➜ <code>{cc}</code>
-𝐁𝐢𝐧 ➜ {ii}
-𝐂𝐨𝐮𝐧𝐭𝐫𝐲 ➜ {do}
-𝐁𝐚𝐧𝐤 ➜ {bank}
-𝐅𝐥𝐚𝐠 ➜ {emj}
-
-𝐂𝐡𝐞𝐜𝐤𝐞𝐝 𝐛𝐲 @{username}
-𝐁𝐨𝐭 𝐛𝐲 @Rusisvirus
+    # 🔥 GOLD STYLE UI DESIGN 🔥
+    msg1 = f"""👑 <b>STRIPE VIP CHECKER</b>
+〰️〰️〰️〰️〰️〰️〰️
+💳 <b>Combo:</b> <code>{cc}</code>
+📝 <b>Status:</b> {last}
+⏳ <b>Time:</b> {time_taken}s
+〰️〰️〰️〰️〰️〰️〰️
+🏦 <b>Bank:</b> {bank}
+🏳️ <b>Info:</b> {dicr} - {typ}
+🌍 <b>Country:</b> {do} {emj}
+〰️〰️〰️〰️〰️〰️〰️
+<b>👤 Checked By: @{username}</b>
+<b>👨‍💻 Master: @Rusisvirus</b>
 """
     return msg1
-
