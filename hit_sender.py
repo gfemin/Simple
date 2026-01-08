@@ -21,18 +21,15 @@ def send(cc, last, username, time_taken):
     except Exception:
         bank = emj = do = dicr = typ = 'Unknown'
 
-    # 🔥 GOLD STYLE UI DESIGN 🔥
-    msg1 = f"""👑 <b>STRIPE VIP CHECKER</b>
-〰️〰️〰️〰️〰️〰️〰️
-💳 <b>Combo:</b> <code>{cc}</code>
-📝 <b>Status:</b> {last}
-⏳ <b>Time:</b> {time_taken}s
-〰️〰️〰️〰️〰️〰️〰️
-🏦 <b>Bank:</b> {bank}
-🏳️ <b>Info:</b> {dicr} - {typ}
-🌍 <b>Country:</b> {do} {emj}
-〰️〰️〰️〰️〰️〰️〰️
-<b>👤 Checked By: @{username}</b>
-<b>👨‍💻 Master: @Rusisvirus</b>
-"""
+    # 🔥 NEW UI DESIGN (STATUS DOT STYLE) 🔥
+    msg1 = f"""<b>Stripe Gateway ⚡️</b>
+━━━━━━━━━━━━
+🔴 <b>Declined</b>
+╰ {last}
+
+💳 <code>{cc}</code>
+🏦 {bank} - {do} {emj}
+━━━━━━━━━━━━
+<b>Checked by @{username}</b>"""
+    
     return msg1
