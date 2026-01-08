@@ -82,7 +82,7 @@ def clear_hits(message):
 # 🔥 1. MASS CHECK STATUS (CUSTOM SHORT TEXT) 🔥
 # ===========================
 def get_mass_status(raw_response):
-    if "Payment Successful" in raw_response:
+    if "Donation Successful!" in raw_response:
         return 'Approved ✅'
     elif "funds" in raw_response:
         return 'Insu ♻️'
@@ -97,7 +97,7 @@ def get_mass_status(raw_response):
 # 🔥 2. SINGLE CHECK STATUS (FULL TEXT) 🔥
 # ===========================
 def get_single_status(raw_response):
-    if "Payment Successful" in raw_response:
+    if "Donation Successful!" in raw_response:
         return 'Transactions Successful 🥵'
     elif "funds" in raw_response:
         return 'Insufficient Funds 🍃'
