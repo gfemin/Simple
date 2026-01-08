@@ -3,7 +3,7 @@ import requests
 def send(cc, last, username, time_taken):
     ii = cc[:6]
 
-    # Fixed amount (no random)
+    # Fixed amount
     fixed_amount = "1"
 
     try:
@@ -21,15 +21,17 @@ def send(cc, last, username, time_taken):
     except Exception:
         bank = emj = do = dicr = typ = 'Unknown'
 
-    # 🔥 NEW UI DESIGN (STATUS DOT STYLE) 🔥
-    msg1 = f"""<b>Stripe Gateway ⚡️</b>
-━━━━━━━━━━━━
+    # 🔥 FINAL CENTERED UI DESIGN 🔥
+    msg1 = f"""<b>━━━━━━━━━━━━━</b>
+   <b>Stripe Gateway ⚡️</b>
+<b>━━━━━━━━━━━━━</b>
 🔴 <b>Declined</b>
 ╰ {last}
 
 💳 <code>{cc}</code>
-🏦 {bank} - {do} {emj}
-━━━━━━━━━━━━
+🏦 {bank}
+🌍 {do} {emj}
+<b>━━━━━━━━━━━━━</b>
 <b>Checked by @{username}</b>"""
     
     return msg1
